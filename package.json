@@ -1,0 +1,14 @@
+{
+  "name": "discord_mute",
+  "version": "1.0.0",
+  "description": "Automatically mutes people inside discord channel so as not to edit the permissions constantly.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "author": "Beren",
+  "dependencies": {
+    "discord.js": "^12.5.0",
+    "lodash": "^4.17.20"
+  }
+}
