@@ -6,14 +6,9 @@ const { prefix } = require('./config.json');
 
 const _ = require('lodash');
 
-let muted_channels = [];
-let muted_users = [];
+let muted_channels = new Set();
+let muted_users = new Set();
 
-let editing_users = false;
-let editing_channels = false;
-
-// https://discord.com/api/oauth2/authorize?client_id=780118449413554226&permissions=8&scope=bot
-// FIXME USE SETS new Set()
 client.on('ready', () => {
     console.log(`Iniciado como ${client.user.tag}`);
 });
@@ -27,33 +22,19 @@ client.on('message', async message => { // Messagae
     const { id, voice, permissions } = member;
 
     const { channelID } = voice;
-    const members = message.guild.channels.cache.get(channelID).members.array();
-
     if (!channelID && (command === "on" || command === "off")) return await message.reply('tienes que estar en un canal de voz.');
     
     if (command === "off") {
-        if (!muted_channels.includes(channelID)) {
-            while (editing_channels) {
-                console.log("Waiting for edit");
-            }
-            editing_channels = true;
-            muted_channels.push(channelID);
-            editing_channels = false;
-        }
+        const members = message.guild.channels.cache.get(channelID).members.array();
+        muted_channels.add(channelID);
 
         for (let i = 0; i < members.length; i++) {
             await process_member(members[i].voice, false);
         };
             
     } else if (command === "on") {
-        if (muted_channels.includes(channelID)) {
-            while (editing_channels) {
-                console.log("Waiting for edit");
-            }
-            editing_channels = true;
-            muted_channels = _.remove(muted_channels, val => val === channelID);
-            editing_channels = false;
-        }
+        const members = message.guild.channels.cache.get(channelID).members.array();
+        muted_channels.delete(channelID);
 
         for (let i = 0; i < members.length; i++) {
             await process_member(members[i].voice, false);
@@ -69,32 +50,22 @@ client.on('message', async message => { // Messagae
 client.on('voiceStateUpdate', async (previous, current) => await process_member(current, true));
 
 async function process_member(voice, from_change) {
-    if (!voice) return;
     const { channelID, serverMute, id } = voice;
+    if (!channelID) return;
 
     console.log("Testeando usuario");
     console.log(muted_channels);
 
-    if (muted_channels.includes(channelID) && !serverMute) {
+    if (muted_channels.has(channelID) && !serverMute) {
         console.log("muteandolo")
         await voice.setMute(true);
-        while (editing_users) {
-            console.log("Waiting for edit");
-        }
-        editing_users = true;
-        muted_users.push(id);
-        editing_users = false;
+        muted_users.add(id);
     }
 
-    if (!muted_channels.includes(channelID) && serverMute && (muted_users.includes(id) || !from_change)) {
+    if (!muted_channels.has(channelID) && serverMute && (muted_users.has(id) || !from_change)) {
         console.log("desmuteandolo")
         await voice.setMute(false);
-        while (editing_users) {
-            console.log("Waiting for edit");
-        }
-        editing_users = true;
-        muted_users = _.remove(muted_users, val => val === id);
-        editing_users = false;
+        muted_users.delete(id);
     }
 }
 
