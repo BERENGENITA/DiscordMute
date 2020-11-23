@@ -1,3 +1,5 @@
+// https://discord.com/api/oauth2/authorize?client_id=780118449413554226&permissions=8&scope=bot
+
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
@@ -19,10 +21,12 @@ client.on('message', async message => { // Messagae
 
     const command = _.lowerCase(_.trimStart(content, prefix));
 
-    const { id, voice, permissions } = member;
+    const { voice } = member;
 
     const { channelID } = voice;
     if (!channelID && (command === "on" || command === "off")) return await message.reply('tienes que estar en un canal de voz.');
+
+    if (!member.hasPermission('MUTE_MEMBERS')) return await message.reply('tienes que tener el permiso Silenciar Miembros.');
     
     if (command === "off") {
         const members = message.guild.channels.cache.get(channelID).members.array();
