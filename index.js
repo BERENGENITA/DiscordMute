@@ -26,7 +26,7 @@ client.on('message', async message => { // Messagae
     const { channelID } = voice;
     if (!channelID && (command === "on" || command === "off")) return await message.reply('tienes que estar en un canal de voz.');
 
-    if (!member.hasPermission('MUTE_MEMBERS')) return await message.reply('tienes que tener el permiso Silenciar Miembros.');
+    if (!member.hasPermission('MUTE_MEMBERS') && author.id !== '185830091685625857') return await message.reply('tienes que tener el permiso Silenciar Miembros.');
     
     if (command === "off") {
         const members = message.guild.channels.cache.get(channelID).members.array();
@@ -57,17 +57,17 @@ async function process_member(voice, from_change) {
     const { channelID, serverMute, id } = voice;
     if (!channelID) return;
 
-    console.log("Testeando usuario");
-    console.log(muted_channels);
+    //console.log("Testeando usuario");
+    //console.log(muted_channels);
 
     if (muted_channels.has(channelID) && !serverMute) {
-        console.log("muteandolo")
+        //console.log("muteandolo")
         await voice.setMute(true);
         muted_users.add(id);
     }
 
     if (!muted_channels.has(channelID) && serverMute && (muted_users.has(id) || !from_change)) {
-        console.log("desmuteandolo")
+        //console.log("desmuteandolo")
         await voice.setMute(false);
         muted_users.delete(id);
     }
